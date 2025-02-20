@@ -1,0 +1,94 @@
+#include <iostream>
+#include <stdexcept>
+
+class HeapArray {
+private:
+    int* data;
+    size_t size;
+
+public:
+    HeapArray(size_t size) : size(size) {
+        if (size == 0) throw std::invalid_argument("Size must be greater than 0");
+        data = new int[size]{}; 
+    }
+
+    ~HeapArray() {
+        delete[] data;
+    }
+
+    HeapArray operator+(const HeapArray& other) const {
+        if (size != other.size) throw std::invalid_argument("Size mismatch");
+        HeapArray result(size);
+        for (size_t i = 0; i < size; i++) {
+            result.data[i] = data[i] + other.data[i];
+        }
+        return result;
+    }
+
+    HeapArray operator-(const HeapArray& other) const {
+        if (size != other.size) throw std::invalid_argument("Size mismatch");
+        HeapArray result(size);
+        for (size_t i = 0; i < size; i++) {
+            result.data[i] = data[i] - other.data[i];
+        }
+        return result;
+    }
+
+    HeapArray operator*(const HeapArray& other) const {
+        if (size != other.size) throw std::invalid_argument("Size mismatch");
+        HeapArray result(size);
+        for (size_t i = 0; i < size; i++) {
+            result.data[i] = data[i] * other.data[i];
+        }
+        return result;
+    }
+
+    HeapArray operator/(const HeapArray& other) const {
+        if (size != other.size) throw std::invalid_argument("Size mismatch");
+        HeapArray result(size);
+        for (size_t i = 0; i < size; i++) {
+            if (other.data[i] == 0) throw std::runtime_error("Division by zero");
+            result.data[i] = data[i] / other.data[i];
+        }
+        return result;
+    }
+
+    void setValue(size_t index, int value) {
+        if (index >= size) throw std::out_of_range("Index out of range");
+        data[index] = value;
+    }
+
+    int getValue(size_t index) const {
+        if (index >= size) throw std::out_of_range("Index out of range");
+        return data[index];
+    }
+
+    void print() const {
+        for (size_t i = 0; i < size; i++) {
+            std::cout << data[i] << " ";
+        }
+        std::cout << std::endl;
+    }
+};
+
+int main() {
+    HeapArray arr1(5), arr2(5);
+    for (size_t i = 0; i < 5; i++) {
+        arr1.setValue(i, i + 1);
+        arr2.setValue(i, (i + 1) * 2);
+    }
+    
+    HeapArray sum = arr1 + arr2;
+    sum.print();
+    
+    HeapArray diff = arr1 - arr2;
+    diff.print();
+    
+    HeapArray prod = arr1 * arr2;
+    prod.print();
+    
+    HeapArray div = arr1 / arr2;
+    div.print();
+    
+    return 0;
+}
