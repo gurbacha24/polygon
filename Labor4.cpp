@@ -1,59 +1,65 @@
-﻿#include <iostream>
+#include <iostream>
 #include <vector>
+#include <chrono>
 
-// функция для вычисления максимальной стоимости рюкзака
-int backpack(const std::vector<std::pair<int, int>>& items, int weight_limit, std::vector<int>& selected_items) {
-    int n = items.size();
-    int max_value = 0;
+int n, W, bestCost = 0;
+std::vector<std::pair<int, int>> items;
+std::vector<int> best, cur;
 
-    // перебор всех комбинаций от 0 до 2^n - 1
-    for (int combination = 0; combination < (1 << n); ++combination) {
-        /*
-        O(2^N) (перебор 0...00 ни один предмет не в комбинации,
-        0...01 только 1й, 0...10 только 2й, ...,
-        1...11 все предметы в комбинации)
-        */
-        int total_weight = 0;
-        int total_value = 0;
-        std::vector<int> current_selection;
-
-        // проверка какие предметы включены в текущую комбинацию
-        for (int i = 0; i < n; ++i) { // O(N)
-            if (combination & (1 << i)) { // если итый предмет включён  // O(1)
-                total_weight += items[i].first; // добавляем его вес
-                total_value += items[i].second; // добавляем его стоимость
-                current_selection.push_back(i + 1); // добавляем его номер в выбор
-            }
+/*
+Рекурсивная функция обхода в глубину для перебора всех возможных комбинаций предметов.
+(включён/не включён в комбинацию: 0...00, 0...01, ..., 1...11)
+Сложность O(2^N), N -- количество предметов
+То есть для каждого из N предметов каждый раз выбор -- взять его или не взять
+*/
+void dfs(int i, int w, int c) {
+    if (i == n) {
+        if (c > bestCost) {
+            bestCost = c;
+            best = cur;
         }
-
-        // если вес не превышает лимит и стоимость больше текущей максимальной
-        if (total_weight <= weight_limit && total_value > max_value) { // O(1)
-            max_value = total_value; // обновляем максимальную стоимость
-            selected_items = current_selection; // сохраняем выбранные предметы
-        }
+        return;
     }
-
-    return max_value;
+    dfs(i + 1, w, c);
+    if (w + items[i].first <= W) {
+        cur.push_back(items[i].first);
+        dfs(i + 1, w + items[i].first, c + items[i].second);
+        cur.pop_back();
+    }
 }
 
-int main() { // O(N)
-    // входные данные: парочки (вес, стоимость)
-    std::vector<std::pair<int, int>> items = { {2, 3}, {3, 4}, {4, 5} };
-    int weight_limit = 5;
+int main() {
+    // Начало измерения времени
+    auto start = std::chrono::high_resolution_clock::now();
 
-    // переменные для результата
-    std::vector<int> selected_items;
-    int max_value = backpack(items, weight_limit, selected_items);
-
-    // вывод результата
-    std::cout << "max price: " << max_value << "\n";
-    std::cout << "chosen items: ";
-    for (int item : selected_items) {
-        std::cout << item << " ";
+    // Ввод данных
+    std::cin >> n;
+    items.resize(n);
+    
+    // Сложность O(N), N -- количество предметов
+    for (int i = 0; i < n; i++) {
+        // Вес и стоимость каждого предмета
+        std::cin >> items[i].first >> items[i].second;
     }
-    std::cout << std::endl;
+    std::cin >> W;
+    
+    // Запуск рекурсивного перебора
+    dfs(0, 0, 0);
+    
+    // Вывод данных
+    std::cout << "[";
+    // Сложность O(N), N -- количество предметов в лучшей комбинации
+    for (int i = 0; i < best.size(); i++) {
+        std::cout << best[i] << (i + 1 < best.size() ? "," : "");
+    }
+    std::cout << "] (The best cost " << bestCost << ")\n";
+
+    // Конец измерения времени
+    auto end = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+
+    // Вывод времени выполнения
+    std::cout << "Time taken: " << elapsed.count() << " seconds\n";
 
     return 0;
 }
-// сложность O(2^N * N) внутренний цикл -- N, внешний -- 2^N ^_^
-// в лучшем случае O(N), в среднем O(2^N * N)
